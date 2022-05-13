@@ -1,17 +1,16 @@
 document.addEventListener('DOMContentLoaded', loadWindow, false)
-let ctx
 
  ws = new WebSocket("ws://localhost:8080/ws")
  console.log("initialized websocket")
 
- ws.onmessage = function(evt) {    
+ ws.onmessage = function(evt) {
   const d = JSON.parse(evt.data) 
   switch (d.type){
     case 'greeting': console.log(d.data) 
                     break
     case 'cards': displayDeck(d.data)
                   break
-    case 'dots': fillBox(d.data)
+    case 'clear': displayBack(d.data)
                   break
     default: 
   }
@@ -41,6 +40,12 @@ function displayDeck(arry){
     })
 }
 
+function displayBack(arry){
+  arry.forEach((value, index) => {
+      document.getElementById('c' + index.toString()).src='./assets/images/back.gif'
+  })
+}
+
 function n(num, len = 2) {
     return `${num}`.padStart(len, '0');
 }
@@ -64,7 +69,7 @@ return array;
 
 function mode (btnID) {
    ws.send(btnID)
-  // alert(btnID)
+   //alert(btnID)
 }
 
 function fillBox(array){

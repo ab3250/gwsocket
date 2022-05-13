@@ -1,12 +1,11 @@
 (define-library (gwsocket)
   (import
     (scheme base))
-  (export
+(export
 	gwinit
-	;recv_page
+	read_from_page
+	send_to_page
 	get_buf
-	set_buf
-	send_page)
-	(include-shared "gwsocket")
-)
+	set_buf)
+	(include-shared "gwsocket"))
 

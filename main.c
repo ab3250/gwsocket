@@ -6,57 +6,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "chibi/eval.h"
-//#define[500] 500
+#include <spawn.h>
+
 //send to page
 //recv from page
 
+char buf[500] = { '\0' };
 
-//char buf[80] = { '\0' };
-char buf[500] =  { 0 };
 
-static void recv_page2 (int fd, fd_set set) {
-  fflush(stdout);
- int bytes = 0;
- // char buf[500] = { 0 };
-
+static void read_from_page() {
+  int bytes = 0;
+  fd_set set;
+  char *recvfifo = "./recv";
+  int fd = 0;
+  if ((fd = open (recvfifo, O_RDWR | O_NONBLOCK)) < 0)
+    exit (1);
   FD_ZERO (&set);
   FD_SET (fd, &set);
-
   if ((select (fd + 1, &set, NULL, NULL, NULL)) < 1)
     exit (1);
   if (!FD_ISSET (fd, &set))
     return;
-
-  if (read (fd, buf, 500) > 0)
-  {}
-   // printf ("%s\n", buf);
-   
+  if (read (fd, buf, 500) > 0){}else{}
 }
 
 static void gwinit(void){
-//fclose (stdout);
-//stdout = fopen ("standard-output-file", "w");
- fd_set set;
-  char *recvfifo = "./recv";
-  int fd = 0;
-
-  if ((fd = open (recvfifo, O_RDWR | O_NONBLOCK)) < 0)
-    exit (1);
-  //while (1) 
-    recv_page2(fd, set);
-//printf ("%s\n", buf);
-  //return 0;
-return;
-
+  fflush(stdout);
+ //posix_spawn(P_DETACH, "./gwsocket", "--addr=127.0.0.1 -p 8080 --pipein=./send --pipeout=./recv");
 }
 
-static void send_page(char* str){
+static void send_to_page(char* str){
    int sendfd;
    char *sendfifo = "./send";
    sendfd = open(sendfifo, O_WRONLY);
    write(sendfd, str, strlen(str));    
-   close(sendfd);
-   //strncpy(buf, "", 500);
+   close(sendfd);  
 }
 
 char* get_buf(void){
@@ -68,27 +52,6 @@ void set_buf(char* str){
     strncpy(buf,str,500);
 }
 
-// static void recv_page(void) {    
-//   int bytes = 0;       
-//     int recvfd = 0;
-//     fd_set set;   
-//     char *recvfifo = "./recv";
-//     if ((recvfd = open (recvfifo, O_RDWR | O_NONBLOCK)) < 0)
-//         exit (1);
-//     //while (1) 
-//   //      recv_page(recvfd, set);  
-//    FD_ZERO (&set);
-//     FD_SET (recvfd, &set);
-//     if ((select (recvfd + 1, &set, NULL, NULL, NULL)) < 1)
-//         exit (1);
-//     if (!FD_ISSET (recvfd, &set))
-//         return;
-//     if (read (recvfd, buf,500) > 0)
-//     { }
-// //               
-//     return;
-// }
-
 sexp sexp_set_buf_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
   sexp res;
   if (! sexp_stringp(arg0))
@@ -97,11 +60,11 @@ sexp sexp_set_buf_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
   return res;
 }
 
-sexp sexp_send_page_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
+sexp sexp_send_to_page_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
   sexp res;
   if (! sexp_stringp(arg0))
     return sexp_type_exception(ctx, self, SEXP_STRING, arg0);
-  res = ((send_page(sexp_string_data(arg0))), SEXP_VOID);
+  res = ((send_to_page(sexp_string_data(arg0))), SEXP_VOID);
   return res;
 }
 
@@ -111,11 +74,11 @@ sexp sexp_get_buf_stub (sexp ctx, sexp self, sexp_sint_t n) {
   return res;
 }
 
-// sexp sexp_recv_page_stub (sexp ctx, sexp self, sexp_sint_t n) {
-//   sexp res;
-//   res = ((recv_page()), SEXP_VOID);
-//   return res;
-// }
+sexp sexp_read_from_page_stub (sexp ctx, sexp self, sexp_sint_t n) {
+  sexp res;
+  res = ((read_from_page()), SEXP_VOID);
+  return res;
+}
 
 sexp sexp_gwinit_stub (sexp ctx, sexp self, sexp_sint_t n) {
   sexp res;
@@ -135,7 +98,7 @@ sexp sexp_init_library (sexp ctx, sexp self, sexp_sint_t n, sexp env, const char
     sexp_opcode_return_type(op) = SEXP_VOID;
     sexp_opcode_arg1_type(op) = sexp_make_fixnum(SEXP_STRING);
   }
-  op = sexp_define_foreign(ctx, env, "send_page", 1, sexp_send_page_stub);
+  op = sexp_define_foreign(ctx, env, "send_to_page", 1, sexp_send_to_page_stub);
   if (sexp_opcodep(op)) {
     sexp_opcode_return_type(op) = SEXP_VOID;
     sexp_opcode_arg1_type(op) = sexp_make_fixnum(SEXP_STRING);
@@ -144,10 +107,10 @@ sexp sexp_init_library (sexp ctx, sexp self, sexp_sint_t n, sexp env, const char
   if (sexp_opcodep(op)) {
     sexp_opcode_return_type(op) = sexp_make_fixnum(SEXP_STRING);
   }
-  // op = sexp_define_foreign(ctx, env, "recv_page", 0, sexp_recv_page_stub);
-  // if (sexp_opcodep(op)) {
-  //   sexp_opcode_return_type(op) = SEXP_VOID;
-  // }
+  op = sexp_define_foreign(ctx, env, "read_from_page", 0, sexp_read_from_page_stub);
+  if (sexp_opcodep(op)) {
+    sexp_opcode_return_type(op) = SEXP_VOID;
+  }
   op = sexp_define_foreign(ctx, env, "gwinit", 0, sexp_gwinit_stub);
   if (sexp_opcodep(op)) {
     sexp_opcode_return_type(op) = SEXP_VOID;

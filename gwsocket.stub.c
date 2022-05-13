@@ -16,11 +16,11 @@ sexp sexp_set_buf_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
   return res;
 }
 
-sexp sexp_send_page_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
+sexp sexp_send_to_page_stub (sexp ctx, sexp self, sexp_sint_t n, sexp arg0) {
   sexp res;
   if (! sexp_stringp(arg0))
     return sexp_type_exception(ctx, self, SEXP_STRING, arg0);
-  res = ((send_page(sexp_string_data(arg0))), SEXP_VOID);
+  res = ((send_to_page(sexp_string_data(arg0))), SEXP_VOID);
   return res;
 }
 
@@ -30,9 +30,9 @@ sexp sexp_get_buf_stub (sexp ctx, sexp self, sexp_sint_t n) {
   return res;
 }
 
-sexp sexp_recv_page_stub (sexp ctx, sexp self, sexp_sint_t n) {
+sexp sexp_read_from_page_stub (sexp ctx, sexp self, sexp_sint_t n) {
   sexp res;
-  res = ((recv_page()), SEXP_VOID);
+  res = ((read_from_page()), SEXP_VOID);
   return res;
 }
 
@@ -54,7 +54,7 @@ sexp sexp_init_library (sexp ctx, sexp self, sexp_sint_t n, sexp env, const char
     sexp_opcode_return_type(op) = SEXP_VOID;
     sexp_opcode_arg1_type(op) = sexp_make_fixnum(SEXP_STRING);
   }
-  op = sexp_define_foreign(ctx, env, "send_page", 1, sexp_send_page_stub);
+  op = sexp_define_foreign(ctx, env, "send_to_page", 1, sexp_send_to_page_stub);
   if (sexp_opcodep(op)) {
     sexp_opcode_return_type(op) = SEXP_VOID;
     sexp_opcode_arg1_type(op) = sexp_make_fixnum(SEXP_STRING);
@@ -63,7 +63,7 @@ sexp sexp_init_library (sexp ctx, sexp self, sexp_sint_t n, sexp env, const char
   if (sexp_opcodep(op)) {
     sexp_opcode_return_type(op) = sexp_make_fixnum(SEXP_STRING);
   }
-  op = sexp_define_foreign(ctx, env, "recv_page", 0, sexp_recv_page_stub);
+  op = sexp_define_foreign(ctx, env, "read_from_page", 0, sexp_read_from_page_stub);
   if (sexp_opcodep(op)) {
     sexp_opcode_return_type(op) = SEXP_VOID;
   }
