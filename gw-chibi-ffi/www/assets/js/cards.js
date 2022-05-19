@@ -1,16 +1,17 @@
 document.addEventListener('DOMContentLoaded', loadWindow, false)
 
- ws = new WebSocket("ws://127.0.0.1:80/ws")
+ ws = new WebSocket("ws://localhost:8080/ws")
  console.log("initialized websocket")
 
- ws.onmessage = function(evt) {   
+ ws.onmessage = function(evt) {
+  //
   const d = JSON.parse(evt.data) 
   switch (d.type){
     case 'greeting': console.log(d.data) 
                     break
     case 'cards': displayDeck(d.data)
                   break
-    case 'hide': displayBack(d.data)
+    case 'clear': displayBack(d.data)
                   break
     default: 
   }
@@ -96,7 +97,8 @@ function fillBox(array){
  }
 
 function loadWindow (){
-
+  const c = document.getElementById("myCanvas")
+  ctx = c.getContext("2d")
 
   Array.from(document.getElementsByTagName('button')).forEach(function (value, i, col) {
     col[i].onclick = function (e) { mode(e.target.id) }

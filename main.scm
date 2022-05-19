@@ -2,21 +2,40 @@
   (chibi time)  
   (scheme base)
   (scheme red)  
-  (gwsocket)
+  (chibi io)
   (schemepunk json)  
   (srfi 1)
   (wslib)
   (delay))
 
 
+;; Write to a text file
+
+(define call-with-input-file 
+  (lambda (filename proc)
+  	(let ((p (open-input-file filename)))
+    (let ((str (proc p)))  
+        (close-input-port p)
+         str))))
+
+(define call-with-output-file
+  (lambda(filename proc str)
+      (let ((p (open-output-file filename)))
+            (proc str p)    
+        (close-output-port p))))
+
+
 (define (main args) 
-  (gwinit)
   (let loop ()
-    (read_from_page)
-    (let ((msg (get_buf)))
-    (display msg)   
-    (cond 
-        ((string=? msg "button1")(send_to_page (jsonify "cards" deck)))
-        ((string=? msg "button2")(send_to_page (jsonify "cards" (knuth-shuffle deck))))
-        ((string=? msg "button3")(send_to_page (jsonify "clear" deck)))))
-  (loop)))
+    (let ((msg (call-with-input-file "recv" read-line)))    
+      (display msg)   
+      (flush-output-port (current-output-port))      
+      (cond 
+        ((string=? msg "button1")(call-with-output-file "send" write-line (jsonify "cards" deck)))
+        ((string=? msg "button2")(call-with-output-file "send" write-line (jsonify "cards" (knuth-shuffle deck))))
+        ((string=? msg "button3")(call-with-output-file "send" write-line (jsonify "hide" deck)))) 
+    (loop))))
+
+
+
+
